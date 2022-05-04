@@ -5,11 +5,11 @@
                         no warranty implied; use at your own risk
    
    Do this:
-	   #define ISL_RANDOM_IMPLEMENTATION
+       #define ISL_RANDOM_IMPLEMENTATION
    before you include this file in *one* C or C++ file to create the implementation.
 
-	 To static link also add:
-	   #define ISL_RANDOM_STATIC
+   To static link also add:
+       #define ISL_RANDOM_STATIC
 
    QUICK NOTES:
 	    This is just a simple wrapper around Xorshiro256**(XOR, shift, rotate) library
@@ -20,10 +20,10 @@
 
 	 USAGE:
 	    uint64_t state[ISL_RANDOM_STATE_SIZE];
-			isl_random_init(&state, 0xDEADBEEF);    // Use builtin Splitmix64 to init state
-			uint64_t raw = isl_random_next(&state);
-			int random_int = isl_random_int(&state, 0, 1000); // Generate random int [0-1000)
-			double random_double = isl_random_double(&state); // Generate random double [0.0-1.0)
+	    isl_random_init(&state, 0xDEADBEEF);    // Use builtin Splitmix64 to init state
+	    uint64_t raw = isl_random_next(&state);
+	    int random_int = isl_random_int(&state, 0, 1000); // Generate random int [0-1000)
+	    double random_double = isl_random_double(&state); // Generate random double [0.0-1.0)
 	    printf("%d %5.5f\n", random_int, random_double);  // Should print 792 0.33190
 
    author: Ilya Kolbin (iskolbin@gmail.com)
@@ -88,12 +88,12 @@ static inline uint64_t isl_random__rotl(const uint64_t x, int k) {
 }
 
 ISL_RANDOM_DEF void isl_random_init(uint64_t *state, uint64_t seed) {
-	for (int i = 0; i < ISL_RANDOM_STATE_SIZE; i++) { /* Splitmix64 taken from Rosetta code */
+	for (int i = 0; i < ISL_RANDOM_STATE_SIZE; i++) {  /* Splitmix64 taken from Rosetta code */
 		seed += 0x9e3779b97f4a7c15;                /* increment the state variable */
 		uint64_t z = seed;                         /* copy the state to a working variable */
 		z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;  /* xor the variable with the variable right bit shifted 30 then multiply by a constant */
 		z = (z ^ (z >> 27)) * 0x94d049bb133111eb;  /* xor the variable with the variable right bit shifted 27 then multiply by a constant */
-		state[i] = z ^ (z >> 31);      /* return the variable xored with itself right bit shifted 31 */
+		state[i] = z ^ (z >> 31);                  /* return the variable xored with itself right bit shifted 31 */
 	}
 }
 
