@@ -12,19 +12,18 @@
        #define ISL_RANDOM_STATIC
 
    QUICK NOTES:
-	    This is just a simple wrapper around Xorshiro256**(XOR, shift, rotate) library
-			taken from https://prng.di.unimi.it/xoshiro256starstar.c which is licensed
-			under CC0 license (see end of file). The state is not static but passed as an
-			argument to the functions. Also there are some renamings to reduce namespace
-			pollutions.
+       This is just a simple wrapper around Xorshiro256**(XOR, shift, rotate) library taken
+       from https://prng.di.unimi.it/xoshiro256starstar.c which is licensed under CC0 license
+       (see end of file). The state is not static but passed as an argument to the functions.
+       Also there are some renamings to reduce namespace pollutions.
 
-	 USAGE:
-	    uint64_t state[ISL_RANDOM_STATE_SIZE];
-	    isl_random_init(&state, 0xDEADBEEF);    // Use builtin Splitmix64 to init state
-	    uint64_t raw = isl_random_next(&state);
-	    int random_int = isl_random_int(&state, 0, 1000); // Generate random int [0-1000)
-	    double random_double = isl_random_double(&state); // Generate random double [0.0-1.0)
-	    printf("%d %5.5f\n", random_int, random_double);  // Should print 792 0.33190
+   USAGE:
+      uint64_t state[ISL_RANDOM_STATE_SIZE];
+      isl_random_init(&state, 0xDEADBEEF);    // Use builtin Splitmix64 to init state
+      uint64_t raw = isl_random_next(&state);
+      int random_int = isl_random_int(&state, 0, 1000); // Generate random int [0-1000)
+      double random_double = isl_random_double(&state); // Generate random double [0.0-1.0)
+      printf("%d %5.5f\n", random_int, random_double);  // Should print 792 0.33190
 
    author: Ilya Kolbin (iskolbin@gmail.com)
    url: https://github.com/iskolbin/isl_random 
