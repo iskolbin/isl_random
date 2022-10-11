@@ -1,7 +1,7 @@
 #ifndef ISL_INCLUDE_RANDOM_H_
 #define ISL_INCLUDE_RANDOM_H_
 
-/* isl_random - v0.1 public domain pseudo random number generator  
+/* islr - v0.2 public domain pseudo random number generator  
                         no warranty implied; use at your own risk
    
    Do this:
@@ -19,15 +19,15 @@
 			pollutions.
 
 	 USAGE:
-	    uint64_t state[ISL_RANDOM_STATE_SIZE];
-			isl_random_init(&state, 0xDEADBEEF);    // Use builtin Splitmix64 to init state
-			uint64_t raw = isl_random_next(&state);
-			int random_int = isl_random_int(&state, 0, 1000); // Generate random int [0-1000)
-			double random_double = isl_random_double(&state); // Generate random double [0.0-1.0)
+	    uint64_t state[ISLR_STATE_SIZE];
+			islr_srand(state, 0xDEADBEEF);    // Use builtin Splitmix64 to init state
+			uint64_t raw = islr_next(&state);
+			int random_int = islr_random(&state, 0, 1000); // Generate random int [0-1000)
+			double random_double = islr_random_double(&state); // Generate random double [0.0-1.0)
 	    printf("%d %5.5f\n", random_int, random_double);  // Should print 792 0.33190
 
    author: Ilya Kolbin (iskolbin@gmail.com)
-   url: https://github.com/iskolbin/isl_random 
+   url: https://github.com/iskolbin/isl_random
    git: git@github.com:iskolbin/isl_random
 
    LICENSE:
@@ -55,40 +55,46 @@ See <http://creativecommons.org/publicdomain/zero/1.0/>. */
    a 64-bit seed, we suggest to seed a splitmix64 generator and use its
    output to fill s. */
 
+#ifndef ISLR_DEF
 #ifdef ISL_RANDOM_STATIC
-#define ISL_RANDOM_DEF static
+#define ISLR_DEF static
 #else
-#define ISL_RANDOM_DEF extern
+#define ISLR_DEF extern
 #endif
+#endif
+
+#define ISLR_STATE_SIZE 4
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define ISL_RANDOM_STATE_SIZE 4
+ISLR_DEF void islr_srand(uint64_t *state, uint64_t seed);
+ISLR_DEF double islr_random_double(uint64_t *state);
+ISLR_DEF int islr_random(uint64_t *state, int from, int to);
 
-ISL_RANDOM_DEF void isl_random_init(uint64_t *state, uint64_t seed);
-ISL_RANDOM_DEF double isl_random_double(uint64_t *state);
-ISL_RANDOM_DEF int isl_random_int(uint64_t *state, int from, int to);
-
-ISL_RANDOM_DEF uint64_t isl_random_next(uint64_t *state);
-ISL_RANDOM_DEF void isl_random_jump(uint64_t *state);
-ISL_RANDOM_DEF void isl_random_long_jump(uint64_t *state);
+ISLR_DEF uint64_t islr_next(uint64_t *state);
+ISLR_DEF void islr_jump(uint64_t *state);
+ISLR_DEF void islr_long_jump(uint64_t *state);
 
 #ifdef __cplusplus
 }
 #endif
+#endif // ISL_INCLUDE_RANDOM_H_
 
 #ifdef ISL_RANDOM_IMPLEMENTATION
 #ifndef ISL_RANDOM_IMPLEMENTATION_ONCE
 #define ISL_RANDOM_IMPLEMENTATION_ONCE
+#else
+#error "ISL_RANDOM_IMPLEMENTATION should be defined once"
+#endif
 
-static inline uint64_t isl_random__rotl(const uint64_t x, int k) {
+static inline uint64_t islr__rotl(const uint64_t x, int k) {
 	return (x << k) | (x >> (64 - k));
 }
 
-ISL_RANDOM_DEF void isl_random_init(uint64_t *state, uint64_t seed) {
-	for (int i = 0; i < ISL_RANDOM_STATE_SIZE; i++) { /* Splitmix64 taken from Rosetta code */
+ISLR_DEF void islr_srand(uint64_t *state, uint64_t seed) {
+	for (int i = 0; i < ISLR_STATE_SIZE; i++) { /* Splitmix64 taken from Rosetta code */
 		seed += 0x9e3779b97f4a7c15;                /* increment the state variable */
 		uint64_t z = seed;                         /* copy the state to a working variable */
 		z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;  /* xor the variable with the variable right bit shifted 30 then multiply by a constant */
@@ -97,8 +103,8 @@ ISL_RANDOM_DEF void isl_random_init(uint64_t *state, uint64_t seed) {
 	}
 }
 
-ISL_RANDOM_DEF uint64_t isl_random_next(uint64_t *state) {
-	const uint64_t result = isl_random__rotl(state[1] * 5, 7) * 9;
+ISLR_DEF uint64_t islr_next(uint64_t *state) {
+	const uint64_t result = islr__rotl(state[1] * 5, 7) * 9;
 
 	const uint64_t t = state[1] << 17;
 
@@ -109,20 +115,20 @@ ISL_RANDOM_DEF uint64_t isl_random_next(uint64_t *state) {
 
 	state[2] ^= t;
 
-	state[3] = isl_random__rotl(state[3], 45);
+	state[3] = islr__rotl(state[3], 45);
 
 	return result;
 }
 
-ISL_RANDOM_DEF double isl_random_double(uint64_t *state) {
-	double y = (double) isl_random_next(state);
+ISLR_DEF double islr_random_double(uint64_t *state) {
+	double y = (double) islr_next(state);
 	return y / (0x8000000000000000U * 2.0);
 }
 
-ISL_RANDOM_DEF int isl_random_int(uint64_t *state, int from, int to) {
+ISLR_DEF int islr_random(uint64_t *state, int from, int to) {
 	if (from == to) return from;
 	int d = (from > to) ? from - to : to - from;
-	uint64_t v = isl_random_next(state);
+	uint64_t v = islr_next(state);
 	return (int) (v % d) + from;
 }
 
@@ -130,8 +136,8 @@ ISL_RANDOM_DEF int isl_random_int(uint64_t *state, int from, int to) {
    to 2^128 calls to next(); it can be used to generate 2^128
    non-overlapping subsequences for parallel computations. */
 
-ISL_RANDOM_DEF void isl_random_jump(uint64_t *state) {
-	static const uint64_t JUMP[] = { 0x180ec6d33cfd0aba, 0xd5a61266f0c9392c, 0xa9582618e03fc9aa, 0x39abdc4529b1661c };
+ISLR_DEF void islr_jump(uint64_t *state) {
+	static const uint64_t JUMP[] = {0x180ec6d33cfd0aba, 0xd5a61266f0c9392c, 0xa9582618e03fc9aa, 0x39abdc4529b1661c};
 
 	uint64_t s0 = 0;
 	uint64_t s1 = 0;
@@ -145,7 +151,7 @@ ISL_RANDOM_DEF void isl_random_jump(uint64_t *state) {
 				s2 ^= state[2];
 				s3 ^= state[3];
 			}
-			isl_random_next(state);
+			islr_next(state);
 		}
 
 	state[0] = s0;
@@ -159,8 +165,8 @@ ISL_RANDOM_DEF void isl_random_jump(uint64_t *state) {
    from each of which jump() will generate 2^64 non-overlapping
    subsequences for parallel distributed computations. */
 
-ISL_RANDOM_DEF void isl_random_long_jump(uint64_t *state) {
-	static const uint64_t LONG_JUMP[] = { 0x76e15d3efefdcbbf, 0xc5004e441c522fb3, 0x77710069854ee241, 0x39109bb02acbe635 };
+ISLR_DEF void islr_long_jump(uint64_t *state) {
+	static const uint64_t LONG_JUMP[] = {0x76e15d3efefdcbbf, 0xc5004e441c522fb3, 0x77710069854ee241, 0x39109bb02acbe635};
 
 	uint64_t s0 = 0;
 	uint64_t s1 = 0;
@@ -174,7 +180,7 @@ ISL_RANDOM_DEF void isl_random_long_jump(uint64_t *state) {
 				s2 ^= state[2];
 				s3 ^= state[3];
 			}
-			isl_random_next(state);
+			islr_next(state);
 		}
 
 	state[0] = s0;
@@ -182,8 +188,6 @@ ISL_RANDOM_DEF void isl_random_long_jump(uint64_t *state) {
 	state[2] = s2;
 	state[3] = s3;
 }
-#endif
-#endif
 #endif
 /*
 ------------------------------------------------------------------------------
