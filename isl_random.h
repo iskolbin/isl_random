@@ -18,11 +18,11 @@
        Also there are some renamings to reduce namespace pollutions.
 
    USAGE:
-      uint64_t state[ISL_RANDOM_STATE_SIZE];
-      isl_random_init(&state, 0xDEADBEEF);    // Use builtin Splitmix64 to init state
-      uint64_t raw = isl_random_next(&state);
-      int random_int = isl_random_int(&state, 0, 1000); // Generate random int [0-1000)
-      double random_double = isl_random_double(&state); // Generate random double [0.0-1.0)
+      uint64_t state[ISLR_STATE_SIZE];
+      isl_random_init(state, 0xDEADBEEF);    // Use builtin Splitmix64 to init state
+      uint64_t raw = islr_next(&state);
+      int random_int = islr_rand(&state, 0, 1000); // Generate random int [0-1000)
+      double random_double = islr_rand_double(&state); // Generate random double [0.0-1.0)
       printf("%d %5.5f\n", random_int, random_double);  // Should print 792 0.33190
 
    author: Ilya Kolbin (iskolbin@gmail.com)
@@ -69,8 +69,8 @@ extern "C" {
 #endif
 
 ISLR_DEF void islr_srand(uint64_t *state, uint64_t seed);
-ISLR_DEF double islr_random_double(uint64_t *state);
-ISLR_DEF int islr_random(uint64_t *state, int from, int to);
+ISLR_DEF double islr_rand_double(uint64_t *state);
+ISLR_DEF int islr_rand(uint64_t *state, int from, int to);
 
 ISLR_DEF uint64_t islr_next(uint64_t *state);
 ISLR_DEF void islr_jump(uint64_t *state);
@@ -119,12 +119,12 @@ ISLR_DEF uint64_t islr_next(uint64_t *state) {
 	return result;
 }
 
-ISLR_DEF double islr_random_double(uint64_t *state) {
+ISLR_DEF double islr_rand_double(uint64_t *state) {
 	double y = (double) islr_next(state);
 	return y / (0x8000000000000000U * 2.0);
 }
 
-ISLR_DEF int islr_random(uint64_t *state, int from, int to) {
+ISLR_DEF int islr_rand(uint64_t *state, int from, int to) {
 	if (from == to) return from;
 	int d = (from > to) ? from - to : to - from;
 	uint64_t v = islr_next(state);
